@@ -13,6 +13,14 @@
         <p>HP: <span id="hp-display">100</span></p>
     </div>
 
+    <!-- Botones de control para móvil (solo visibles en pantallas pequeñas) -->
+    <div id="mobile-controls">
+    <div class="control-btn up" id="btn-up">▲</div>
+    <div class="control-btn left" id="btn-left">◀</div>
+    <div class="control-btn right" id="btn-right">▶</div>
+    <div class="control-btn down" id="btn-down">▼</div>
+</div>
+
 
     <!-- <div id="game-container"></div>
     <div id="ui-container">
@@ -35,6 +43,7 @@
         </div>
     </div>
 
+    <!-- Pantalla de batalla RPG (oculta inicialmente) -->
     <div id="battle-screen" class="battle-overlay">
         <div class="battle-arena">
             <div id="enemy-sprite-container"></div>
@@ -59,6 +68,14 @@
             </div>
         </div>
     </div>
+
+    <!-- Div para mostrar notificaciones personalizadas (oculta inicialmente) --> 
+    <div id="custom-alert" class="alert-hidden">
+    <div class="alert-content">
+        <p id="alert-message"></p>
+        <button onclick="cerrarNotificacion()">CONTINUAR</button>
+    </div>
+</div>
 
     <script src="src/main.js"></script>
 </body>

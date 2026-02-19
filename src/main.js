@@ -14,9 +14,17 @@ const config = {
     scene: { preload: preload, create: create, update: update }
 };
 
+// *******************************
+//Variables globales para el juego
+//********************************
+
+// Crear la instancia del juego
+
 const game = new Phaser.Game(config);
 let player;
 let cursors;
+let touchControls = { up: false, down: false, left: false, right: false };
+let pendienteCerrarCombate = false;
 
 // Objeto para almacenar las estadísticas del jugador
 let playerStats = {
@@ -132,6 +140,9 @@ function create() {
         repeat: -1
     });
 
+    // Configuramos los controles táctiles
+    configurarControlesTactiles();
+
     // 5. CÁMARA (Nuevo: para que el mapa no se vea estático)
     this.cameras.main.startFollow(player);
     this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -213,44 +224,53 @@ function create() {
 
 
 function update() {
-    player.setVelocity(0);
 
     // 1. Lógica de movimiento y selección de animación
-    if (cursors.left.isDown) {
-        player.setVelocityX(-160);
+    player.setVelocity(0);
+    let speed = 80;
+
+    // Lógica combinada: Teclado || Táctil
+    if (cursors.left.isDown || touchControls.left) {
+        player.setVelocityX(-speed);
         player.play('izquierda', true);
     }
-    else if (cursors.right.isDown) {
-        player.setVelocityX(160);
+    else if (cursors.right.isDown || touchControls.right) {
+        player.setVelocityX(speed);
         player.play('derecha', true);
     }
-    else if (cursors.up.isDown) {
-        player.setVelocityY(-160);
+
+    if (cursors.up.isDown || touchControls.up) {
+        player.setVelocityY(-speed);
         player.play('arriba', true);
     }
-    else if (cursors.down.isDown) {
-        player.setVelocityY(160);
+    else if (cursors.down.isDown || touchControls.down) {
+        player.setVelocityY(speed);
         player.play('abajo', true);
+    }
+
+    if (player.body.velocity.x === 0 && player.body.velocity.y === 0) {
+        player.anims.stop();
     }
     else {
         // 2. Si no se presiona nada, detenemos la animación
-        player.anims.stop();
+        //player.anims.stop();
 
         // Opcional: Para que se quede mirando en la última dirección 
         // podrías usar player.setFrame(índice_de_quieto);
     }
+    player.body.velocity.normalize().scale(speed);
 
     // 3. Soporte para diagonales (Opcional)
     // Para que no se mueva más rápido en diagonal (teorema de Pitágoras),
     // normalizamos la velocidad si es necesario, pero para empezar, 
     // la estructura de arriba es perfecta.
-    player.body.velocity.normalize().scale(160);
+    //player.body.velocity.normalize().scale(160);
 
     // Lógica para que el alien camine en cuadrado
     // Si camina 200px hacia abajo, que gire a la derecha, etc.
 
     let alien = this.alien;
-    let speed = 80;
+    //let speed = 80;
 
     // Ejemplo de patrulla en 4 direcciones basada en distancia recorrida
     if (alien.body.velocity.y > 0 && alien.y > 500) { // Llegó al límite inferior
@@ -316,27 +336,116 @@ function actualizarInterfazBatalla() {
 function iniciarCombate(enemigo) {
     // 0. Efecto visual de transición
     document.getElementById('game-container').style.filter = 'blur(5px) grayscale(50%)';
-    
+
     // 1. Mostramos el div que estaba en 'display: none'
     const pantallaBatalla = document.getElementById('battle-screen');
     pantallaBatalla.style.display = 'flex'; // Usamos flex porque así lo definimos en el CSS
+
+    // Ocultamos los botones táctiles
+    const controles = document.getElementById('mobile-controls');
+    if (controles) controles.style.display = 'none';
 
     // 2. Actualizamos los datos iniciales en la interfaz
     actualizarInterfazBatalla();
 
     // 3. (Opcional) Podemos pasar datos del alien a la batalla
     console.log("Iniciando batalla contra el alien tipo: " + enemigo.texture.key);
-    
+
     // Aquí podrías incluso cambiar la música o añadir un efecto visual
 }
 
-function handleTouch(pointer) {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    if (pointer.x < centerX - 50) player.setVelocityX(-160);
-    else if (pointer.x > centerX + 50) player.setVelocityX(160);
-    if (pointer.y < centerY - 50) player.setVelocityY(-160);
-    else if (pointer.y > centerY + 50) player.setVelocityY(160);
+// Función para finalizar el combate y volver al juego
+/*
+function finalizarCombate() {
+    // 1. Ocultamos la pantalla de batalla
+    document.getElementById('battle-screen').style.display = 'none';
+    
+    // 2. Quitamos el desenfoque del juego
+    document.getElementById('game-container').style.filter = 'none';
+    
+    // 3. Volvemos a mostrar los controles táctiles (solo si no es PC)
+    if (window.innerWidth < 1024) {
+        document.getElementById('mobile-controls').style.display = 'grid';
+    }
+    
+    // 4. Reanudamos el mundo físico de Phaser
+    // Necesitarás acceder a la escena actual de Phaser
+    game.scene.scenes[0].physics.world.resume();
+}
+*/
+function intentarEscapar() {
+    if (Math.random() < 0.5) {
+        mostrarMensaje("¡Escape exitoso! Has logrado burlar al alien.");
+        pendienteCerrarCombate = true; // Marcamos que al dar "Continuar" volvemos al mapa
+    } else {
+        mostrarMensaje("¡Escape fallido! El alien bloquea tu salida.");
+        pendienteCerrarCombate = false;
+    }
+}
+
+function finalizarCombate() {
+    // 1. Ocultar pantalla de batalla
+    document.getElementById('battle-screen').style.display = 'none';
+    
+    // 2. Quitar desenfoque del juego
+    document.getElementById('game-container').style.filter = 'none';
+    
+    // 3. Mostrar controles táctiles (solo si no es PC)
+    if (window.innerWidth < 1024) {
+        document.getElementById('mobile-controls').style.display = 'grid';
+    }
+    
+    // 4. Reanudar físicas y juego
+    game.scene.scenes[0].physics.world.resume();
+    
+    // 5. Mover al jugador un poco para que no colisione de inmediato otra vez
+    // Esto evita un bucle infinito de batalla
+    player.x += 100; 
+}
+
+
+// Funciones para los mensajes personalizados (en lugar de alert())
+function mostrarMensaje(texto) {
+    document.getElementById('alert-message').innerText = texto;
+    document.getElementById('custom-alert').style.display = 'flex';
+}
+
+function cerrarNotificacion() {
+    document.getElementById('custom-alert').style.display = 'none';
+    
+    // Si el escape fue exitoso, cerramos la batalla
+    if (pendienteCerrarCombate) {
+        finalizarCombate();
+        pendienteCerrarCombate = false; // Reiniciamos la variable para futuras batallas
+    }
+}
+
+// Función para configurar los controles táctiles (Lógica de eventos táctiles)
+function configurarControlesTactiles() {
+    const botones = [
+        { id: 'btn-up', dir: 'up' },
+        { id: 'btn-down', dir: 'down' },
+        { id: 'btn-left', dir: 'left' },
+        { id: 'btn-right', dir: 'right' }
+    ];
+
+    botones.forEach(b => {
+        const elemento = document.getElementById(b.id);
+
+        elemento.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchControls[b.dir] = true;
+        });
+
+        // 'touchend' para cuando suelta, 'touchcancel' por si entra una llamada o algo interrumpe
+        const detener = (e) => {
+            e.preventDefault();
+            touchControls[b.dir] = false;
+        };
+
+        elemento.addEventListener('touchend', detener);
+        elemento.addEventListener('touchcancel', detener);
+    });
 }
 
 // Funciones para guardar y cargar el progreso del juego usando localStorage

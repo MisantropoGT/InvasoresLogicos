@@ -1,4 +1,14 @@
 /* style.css */
+
+/*---------------------
+    Estilos para el juego Invasores Lógicos
+    Autor: Jose Granados
+-----------------------*/
+
+/* ----------------------
+    1. Estilos generales
+------------------------ */
+
 * {
     margin: 0;
     padding: 0;
@@ -32,7 +42,56 @@ canvas {
     text-align: center;
 }
 
-/* Estilos para el menú RPG */
+/*-----------------------
+    2. Controles táctiles
+------------------------- */
+
+#mobile-controls {
+    position: absolute;
+    bottom: 5%;
+    left: 5%;
+    width: 150px;
+    height: 150px;
+    display: grid;
+    grid-template-areas: 
+        ". up ."
+        "left . right"
+        ". down .";
+    gap: 10px;
+    z-index: 2000;
+}
+
+.control-btn {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2); /* Opacidad baja */
+    border: 2px solid rgba(0, 255, 65, 0.5);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    user-select: none; /* Evita que el usuario seleccione el texto al tocar */
+    touch-action: none; /* Evita que el navegador intente hacer scroll mientras juegas */
+    -webkit-tap-highlight-color: transparent; /* Quita el cuadro azul feo al tocar en Android/iOS */
+}
+
+/* Efecto al presionar */
+.control-btn:active {
+    background: rgba(0, 255, 65, 0.4);
+    transform: scale(0.95);
+}
+
+.up { grid-area: up; }
+.left { grid-area: left; }
+.right { grid-area: right; }
+.down { grid-area: down; }
+
+
+/* ---------------------
+    3. Estilos para el menú RPG 
+------------------------*/
 #menu-rpg {
     display: none; /* Se activa desde JS */
     position: absolute;
@@ -49,7 +108,9 @@ canvas {
     font-family: 'Courier New', monospace;
 }
 
-
+/* ---------------------
+    4. Estilos para la batalla RPG
+------------------------ */
 
 .battle-overlay {
     display: none; /* Se activa desde JS */
@@ -80,6 +141,7 @@ canvas {
     padding: 2%;
 }
 
+
 .stats-box { width: 40%; color: white; font-family: 'Courier New', monospace; }
 .actions-box { 
     width: 60%; 
@@ -98,3 +160,65 @@ canvas {
 }
 .bar-hp { width: 100%; height: 100%; background: #ff0000; transition: width 0.5s; }
 .bar-en { width: 100%; height: 100%; background: #00aaff; transition: width 0.5s; }
+
+/* --------------------
+    5. Mensajes personalizados 
+------------------------*/
+
+#custom-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    display: none; /* Se activa desde JS */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.alert-content {
+    background: #001a33;
+    border: 3px solid #00ff41;
+    padding: 30px;
+    text-align: center;
+    color: white;
+    font-family: 'Courier New', monospace;
+    border-radius: 10px;
+    box-shadow: 0 0 20px #00ff41;
+}
+
+.alert-content button {
+    margin-top: 20px;
+    background: #00ff41;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* ------------------------
+    6. Media Queries para controles táctiles
+------------------------- */
+
+/* Solo mostrar controles táctiles en pantallas de menos de 1024px */
+@media (min-width: 1024px) {
+    #mobile-controls {
+        display: none !important;
+    }
+}
+
+/* Ocultar si el dispositivo no tiene capacidad táctil real */
+@media (pointer: fine) {
+    #mobile-controls {
+        display: none;
+    }
+}
+
+@media (pointer: coarse) {
+    .battle-menu {
+        margin-bottom: 50px;
+    }
+}
