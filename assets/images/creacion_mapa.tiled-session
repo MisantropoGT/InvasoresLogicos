@@ -1,0 +1,28 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "mapa1.tmx#arboles": {
+            "scaleInEditor": 1
+        }
+    },
+    "last.exportedFilePath": "C:/Users/ASUS/OneDrive - cepinm.org/Documentos/Proyectos/Invasores Logicos/assets/images",
+    "last.imagePath": "C:/Users/ASUS/OneDrive - cepinm.org/Documentos/Proyectos/Invasores Logicos/assets/images",
+    "map.height": 30,
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "tmx",
+    "map.layerDataFormat": "3",
+    "map.width": 20,
+    "openFiles": [
+    ],
+    "project": "creacion_mapa.tiled-project",
+    "property.type": "object",
+    "recentFiles": [
+    ],
+    "tileset.embedInMap": true
+}

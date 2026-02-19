@@ -1,0 +1,64 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Logic Invaders</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+</head>
+
+<body>
+    <!-- Contenedor para el juego Phaser -->
+    <div id="game-container"></div>
+
+    <div id="ui-interfaz" style="position: absolute; bottom: 10px;">
+        <p>HP: <span id="hp-display">100</span></p>
+    </div>
+
+
+    <!-- <div id="game-container"></div>
+    <div id="ui-container">
+        <h1>LOGIC INVADERS v1.0</h1>
+        <p>Usa la lógica para deshabilitar los escudos alienígenas.</p>
+    </div> -->
+
+     <!-- Menú RPG oculto inicialmente -->
+    <div id="menu-rpg" class="menu-oculto">
+        <div class="stats-panel">
+            <h2>Atributos</h2>
+            <p>HP: <span id="hp-val"></span></p>
+            <p>Fuerza: <span id="str-val"></span> <button onclick="subirStat('fuerza')">+</button></p>
+            <p>Energía: <span id="ene-val"></span></p>
+            <p>Puntos: <span id="pts-val"></span></p>
+        </div>
+        <div class="inventory-panel">
+            <h2>Inventario</h2>
+            <ul id="lista-items"></ul>
+        </div>
+    </div>
+
+    <div id="battle-screen" class="battle-overlay">
+        <div class="battle-arena">
+            <div id="enemy-sprite-container"></div>
+            <div id="player-sprite-placeholder"></div>
+        </div>
+
+        <div class="battle-menu">
+            <div class="stats-box">
+                <p>MATEMÁTICO</p>
+                <div class="bar-container">
+                    <div id="hp-bar-fill" class="bar-hp"></div>
+                </div>
+                <div class="bar-container">
+                    <div id="en-bar-fill" class="bar-en"></div>
+                </div>
+            </div>
+            <div class="actions-box">
+                <button onclick="ejecutarAccion('ataque')">LÓGICA</button>
+                <button onclick="ejecutarAccion('energia')">MEDITAR</button>
+                <button onclick="abrirInventario()">ÍTEMS</button>
+                <button onclick="intentarEscapar()">HUIR</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/main.js"></script>
+</body>
