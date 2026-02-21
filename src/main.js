@@ -33,6 +33,10 @@ let sfxItem;
 const sonidoMenuHover = new Audio('assets/sounds/hover.mp3');
 sonidoMenuHover.volume = 0.5;
 
+// Variables globales para la batalla
+let enemigoActual = null;
+let turnoJugador = true;
+
 // Objeto para almacenar las estadísticas del jugador
 let playerStats = {
     nivel: 1,
@@ -54,9 +58,12 @@ let playerStats = {
         botas: null,
         accesorio: null
     },
-    inventario: [] // Objetos con sus características (estilo diccionarios)
-};
+    inventario: [], // Objetos con sus características (estilo diccionarios)
+    habilidades: ['golpe_basico', 'ataque_ddos', null, null]
 
+
+};
+// ------- BASES DE DATOS -------
 // Base de datos de todos los ítems del juego
 const itemsDB = {
     // --- ARMAS ---
@@ -104,6 +111,34 @@ const itemsDB = {
         tipo: 'clave',
         icono: '🔑',
         desc: 'Abre compuertas lógicas tipo AND.'
+    }
+};
+
+// Base de datos de Enemigos
+const enemigosDB = {
+    'alien_glitch': {
+        id: 'alien_glitch', nombre: 'Alien Glitch', 
+        hpMax: 120, hp: 120, atk: 8, def: 5, xp: 15
+    },
+    'bug_acorazado': {
+        id: 'bug_acorazado', nombre: 'Bug Acorazado', 
+        hpMax: 80, hp: 80, atk: 12, def: 15, xp: 35
+    }
+};
+
+// Base de datos de Habilidades (Movimientos)
+const habilidadesDB = {
+    'golpe_basico': {
+        id: 'golpe_basico', nombre: 'Golpe Lógico',
+        multiplicador: 1.0, precision: 100, costoEnergia: 0, tipo: 'normal'
+    },
+    'ataque_ddos': {
+        id: 'ataque_ddos', nombre: 'Ráfaga DDoS',
+        multiplicador: 1.5, precision: 85, costoEnergia: 15, tipo: 'red'
+    },
+    'inyeccion_sql': {
+        id: 'inyeccion_sql', nombre: 'Inyección SQL',
+        multiplicador: 2.0, precision: 70, costoEnergia: 25, tipo: 'codigo'
     }
 };
 
@@ -329,7 +364,7 @@ function create() {
     this.hpBar = this.add.graphics();
 
     // Configurar los sonidos
-    bgmMundo = this.sound.add('musica_mundo', { loop: true, volume: 0.4 });
+    bgmMundo = this.sound.add('musica_mundo', { loop: true, volume: 0.3 });
     bgmBatalla = this.sound.add('musica_batalla', { loop: true, volume: 0.5 });
     sfxItem = this.sound.add('sonido_item', { volume: 0.7 });
 
@@ -703,12 +738,16 @@ function actualizarInterfazBatalla() {
 
 // Función para iniciar el combate
 function iniciarCombate(enemigo) {
+    // Clonamos un enemigo de prueba (luego lo puedes hacer dinámico según el sprite)
+    enemigoActual = JSON.parse(JSON.stringify(enemigosDB['alien_glitch']));
+    turnoJugador = true;
+
     // 1. Efecto visual de transición
     document.getElementById('game-container').style.filter = 'blur(5px) grayscale(50%)';
 
     // 2. Mostramos el div que estaba en 'display: none'
-    const pantallaBatalla = document.getElementById('battle-screen');
-    pantallaBatalla.style.display = 'flex'; // Usamos flex porque así lo definimos en el CSS
+    document.getElementById('battle-screen').style.display = 'flex';
+    
 
     // 3. Ocultamos los botones táctiles
     const controles = document.getElementById('mobile-controls');
@@ -720,6 +759,7 @@ function iniciarCombate(enemigo) {
 
     // 5. Actualizamos los datos iniciales en la interfaz
     actualizarInterfazBatalla();
+    mostrarMensaje(`¡Un ${enemigoActual.nombre} salvaje aparece!`);
 
     // 6. (Opcional) Podemos pasar datos del alien a la batalla
     console.log("Iniciando batalla contra el alien tipo: " + enemigo.texture.key);
@@ -727,6 +767,156 @@ function iniciarCombate(enemigo) {
     // Aquí podrías incluso cambiar la música o añadir un efecto visual
 }
 
+function ejecutarAccion(tipo) {
+    if (!turnoJugador) return; // Si no es tu turno, los botones no hacen nada
+
+    if (tipo === 'ataque') {
+        // Llamamos a tu habilidad básica (el Golpe Lógico de coste 0)
+        usarHabilidad('golpe_basico');
+    } else if (tipo === 'energia') {
+        meditar(); // Función para recuperar un poco de energía
+    }
+}
+
+function meditar() {
+    const recuperacion = 15;
+    playerStats.energia = Math.min(playerStats.energia + recuperacion, playerStats.energiaMax);
+    actualizarInterfazBatalla();
+    mostrarMensaje("Has meditado. Recuperas 15 pts de Energía.");
+    
+    // IMPORTANTE: Meditar también consume tu turno
+    turnoJugador = false;
+    setTimeout(turnoDelEnemigo, 1500);
+}
+
+// Esta función se llama al presionar un botón de ataque
+function usarHabilidad(idHabilidad) {
+    if (!turnoJugador) return; // Evita que el jugador ataque fuera de su turno
+
+    const habilidad = habilidadesDB[idHabilidad];
+
+    // Verificar Energía
+    if (playerStats.energia < habilidad.costoEnergia) {
+        mostrarMensaje("No tienes suficiente energía para usar esta lógica.");
+        return;
+    }
+
+    // Consumir energía
+    playerStats.energia -= habilidad.costoEnergia;
+    actualizarInterfazBatalla();
+
+    // Calcular resultado
+    const resultado = calcularDaño(habilidad);
+
+    if (resultado.fallo) {
+        mostrarMensaje(`¡Tu ${habilidad.nombre} falló! La lógica fue imprecisa.`);
+    } else {
+        enemigoActual.hp -= resultado.dañoFinal;
+        if (enemigoActual.hp < 0) enemigoActual.hp = 0;
+        
+        let textoAtaque = `Usaste ${habilidad.nombre} y causaste ${resultado.dañoFinal} pts de daño.`;
+        if (resultado.critico) textoAtaque = `¡GOLPE CRÍTICO!\n` + textoAtaque;
+        
+        mostrarMensaje(textoAtaque);
+    }
+
+    // Revisar si el enemigo murió
+    if (enemigoActual.hp === 0) {
+        setTimeout(victoriaCombate, 1500); // Lógica para ganar oro/xp
+    } else {
+        // Ceder turno
+        turnoJugador = false;
+        setTimeout(turnoDelEnemigo, 2000); // El enemigo responde en 2 segundos
+    }
+}
+
+// Inteligencia Artificial Básica del Enemigo
+function turnoDelEnemigo() {
+    if (enemigoActual.hp <= 0) return; // Si el enemigo ya murió, no ataca
+
+    // Fórmula simple: Atk Enemigo - Tu Defensa (mínimo 1 de daño)
+    let dañoEnemigo = enemigoActual.atk - (playerStats.defensa + calcularBonosEquipo().defensa);
+    if (dañoEnemigo < 1) dañoEnemigo = 1;
+
+    playerStats.hp -= dañoEnemigo;
+    if (playerStats.hp < 0) playerStats.hp = 0;
+
+    // Actualizamos las barras visuales
+    actualizarInterfazBatalla();
+    mostrarMensaje(`El ${enemigoActual.nombre} lanza un ataque de interferencia: -${dañoEnemigo} HP.`);
+
+    if (playerStats.hp === 0) {
+        setTimeout(() => {
+            mostrarMensaje("Tus sistemas han colapsado. GAME OVER.");
+            // Aquí podrías reiniciar la página o volver al último punto guardado
+        }, 1500);
+    } else {
+        // Vuelve a ser tu turno tras el mensaje
+        turnoJugador = true;
+    }
+}
+
+function calcularDaño(habilidad) {
+    const bonos = calcularBonosEquipo();
+    const fuerzaTotal = playerStats.fuerza + bonos.str;
+    const suerteTotal = (playerStats.luc || 5) + bonos.luc;
+    
+    // 1. Arma (Si no hay arma, el ATK es 5 por defecto)
+    const arma = playerStats.equipo.arma;
+    let atkArma = 5; 
+    let bonoCritArma = 0;
+
+    if (arma) {
+        // Obtenemos un número aleatorio entre el ATK Min y Max del arma
+        atkArma = Math.floor(Math.random() * (arma.atkMax - arma.atkMin + 1)) + arma.atkMin;
+        if (arma.bonos && arma.bonos.critDanio) bonoCritArma = arma.bonos.critDanio;
+    }
+
+    // 2. Probabilidad de Acierto
+    const acierta = (Math.random() * 100) <= habilidad.precision;
+    if (!acierta) return { fallo: true, dañoFinal: 0, critico: false };
+
+    // 3. Daño Base (Aplicando el multiplicador de la habilidad)
+    let dañoBase = (atkArma * (1.3 * fuerzaTotal)) - enemigoActual.def;
+    dañoBase = dañoBase * habilidad.multiplicador;
+    if (dañoBase < 1) dañoBase = 1; // El daño nunca es negativo o cero
+
+    // 4. Cálculo de Crítico basado en LUC
+    // Fórmula propuesta: 1 LUC = 2% de prob. Base de daño crítico = 50% (0.5) + (LUC * 5%)
+    const probCritico = suerteTotal * 2; 
+    let porcentajeDañoCritico = 0.50 + (suerteTotal * 0.05) + bonoCritArma;
+    
+    const esCritico = (Math.random() * 100) <= probCritico;
+    
+    let dañoFinal = esCritico ? dañoBase * (1 + porcentajeDañoCritico) : dañoBase;
+    
+    // Redondeamos para no tener decimales en la UI
+    return { 
+        fallo: false, 
+        dañoFinal: Math.floor(dañoFinal), 
+        critico: esCritico 
+    };
+}
+
+function victoriaCombate() {
+    // 1. Calculamos la recompensa (puedes hacerla proporcional al nivel del enemigo)
+    const puntosGanados = 2; // Puntos de Lógica para distribuir
+    const oroGanado = Math.floor(Math.random() * 20) + 10;
+    
+    // 2. Aplicamos la recompensa a tus estadísticas globales
+    playerStats.puntosDisponibles += puntosGanados;
+    playerStats.oro += oroGanado;
+
+    // 3. Mostramos el mensaje de éxito en tu DIV personalizado
+    mostrarMensaje(`¡VICTORIA! \nHas deshabilitado al alien. \nGanaste: ${puntosGanados} Puntos de Lógica y ${oroGanado} de Oro.`);
+    
+    // 4. Preparamos el cierre: al dar "Continuar" en el mensaje, volveremos al mapa
+    pendienteCerrarCombate = true; 
+    escapeExitoso = true; // Reutilizamos esta variable para que finalizarCombate() sepa que debe cerrar
+    
+    // Opcional: Sonido de victoria
+    // sfxVictoria.play();
+}
 
 function intentarEscapar() {
     if (Math.random() < 0.5) {
