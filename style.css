@@ -92,8 +92,8 @@ canvas {
 /* ---------------------
     3. Estilos para el menú RPG 
 ------------------------*/
-#menu-rpg {
-    display: none; /* Se activa desde JS */
+/* #menu-rpg {
+    display: none; 
     position: absolute;
     top: 50%;
     left: 50%;
@@ -106,6 +106,142 @@ canvas {
     padding: 20px;
     color: white;
     font-family: 'Courier New', monospace;
+} */
+
+#btn-abrir-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #001a33;
+    color: #00ff41;
+    border: 2px solid #00ff41;
+    padding: 10px 15px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1500; /* Por encima del canvas, por debajo de las alertas */
+}
+
+#menu-rpg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    display: none; 
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Courier New', monospace;
+} 
+
+
+/* Quitamos el grid de antes para que sea una lista vertical */
+.menu-contenido {
+    width: 90%;
+    max-width: 500px;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-section {
+    border: 2px solid #00ff41;
+    background: #001a33;
+    border-radius: 5px;
+    overflow: hidden; /* Clave para ocultar lo que se desliza */
+}
+
+.menu-header {
+    width: 100%;
+    background: #003366;
+    color: #00ff41;
+    border: none;
+    padding: 15px;
+    text-align: left;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.menu-header:hover {
+    background: #004080;
+}
+
+/* El cuerpo oculto */
+.menu-body {
+    max-height: 0; /* Altura inicial 0 */
+    overflow: hidden;
+    transition: max-height 1s ease-out; /* La animación de deslizamiento */
+    background: #111;
+}
+
+/* El contenido interno para dar padding sin romper la animación */
+.inner-padding {
+    padding: 20px;
+    color: white;
+}
+
+/* Estilo para los bonos de stats */
+.txt-bono {
+    color: #ffcc00; /* Amarillo brillante */
+    font-weight: bold;
+    margin-left: 5px;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); /* Brillo sutil */
+}
+
+/* Estilo para los botones del inventario */
+.btn-accion-item {
+    background: #00ff41;
+    color: #001a33;
+    border: none;
+    padding: 2px 8px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    border-radius: 3px;
+}
+
+/* Estilo para el mensaje de inventario vacío */
+.inventarioVacio {
+    font-style: italic;
+    color: #777;
+    text-align: center;
+}
+
+/* Clase activa para abrir */
+.menu-body.open {
+    max-height: 500px; /* Un valor suficiente para que quepa el contenido */
+}
+
+
+/* Colores para los valores de stats */
+#hp-val, #str-val, #def-val, #ene-val, #luc-val {
+    color: yellowgreen;
+}
+
+#pts-val {
+    color: red;
+    font-weight: bold;
+}
+
+.btn-cerrar {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: red;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
 }
 
 /* ---------------------
@@ -148,6 +284,38 @@ canvas {
     display: grid; 
     grid-template-columns: 1fr 1fr; 
     gap: 10px; 
+}
+
+.btn-accion{
+     appearance: button;
+  background-color: #4D4AE8;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, 0));
+  border: 1px solid #4D4AE8;
+  border-radius: 1rem;
+  box-shadow: rgba(255, 255, 255, 0.15) 0 1px 0 inset,rgba(46, 54, 80, 0.075) 0 1px 1px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  display: inline-block;
+  font-family: Inter,sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+  padding: .5rem 1rem;
+  text-align: center;
+  text-transform: none;
+  transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+
+}
+
+.btn-accion:hover {
+  background-color: #3733E5;
+  border-color: #3733E5;
 }
 
 /* Barras de HP y Energía */

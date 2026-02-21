@@ -26,6 +26,10 @@ let cursors;
 let touchControls = { up: false, down: false, left: false, right: false };
 let pendienteCerrarCombate = false;
 
+// Carga de sonidos
+const sonidoMenuHover = new Audio('assets/sounds/hover.mp3');
+sonidoMenuHover.volume = 0.5;
+
 // Objeto para almacenar las estadísticas del jugador
 let playerStats = {
     nivel: 1,
@@ -35,13 +39,64 @@ let playerStats = {
     energiaMax: 50,
     fuerza: 10,
     defensa: 8,
-    puntosDisponibles: 0,
+    luc: 5,
+    puntosDisponibles: 5,
+    experiencia: 0,
     oro: 0,
     equipo: {
-        arma: "Lápiz de Grafito", // Tu primera "arma" lógica
-        armadura: "Bata de Docente"
+        arma: null,
+        cabeza: null,
+        cuerpo: null,
+        guantes: null,
+        botas: null,
+        accesorio: null
     },
-    inventario: []
+    inventario: [] // Objetos con sus carteriticas (estilo diccionarios)
+};
+
+// Base de datos de todos los ítems del juego
+const itemsDB = {
+    // --- ARMAS ---
+    'espada_euler': {
+        id: 'espada_euler',
+        nombre: 'Espada de Euler',
+        tipo: 'arma',
+        atkMin: 8,
+        atkMax: 14,
+        costoEnergia: 5,
+        bonos: { str: 2, luc: 3 }, // Substats
+        desc: 'Un arma perfectamente balanceada usando la constante e.'
+    },
+    // --- EQUIPAMIENTO ---
+    'botas_newton': {
+        id: 'botas_newton',
+        nombre: 'Botas de Newton',
+        tipo: 'botas',
+        bonos: { defensa: 2, velocidad: 10 },
+        desc: 'Ignoran parcialmente la fricción.'
+    },
+    // --- CONSUMIBLES ---
+    'cafe_matematico': {
+        id: 'cafe_matematico',
+        nombre: 'Café Matemático',
+        tipo: 'consumible',
+        efecto: { recuperaHP: 20, recuperaEN: 15 },
+        desc: 'Restaura HP y Energía para seguir resolviendo problemas.'
+    },
+    // --- Varios ----
+    'libro_logica':{
+        id: 'libro_logica',
+        nombre: 'Libro de Logica Boolena',
+        tipo: 'varios',
+        precio: 100
+    },
+    // --- OBJETOS CLAVE ---
+    'llave_booleana': {
+        id: 'llave_booleana',
+        nombre: 'Llave Booleana (True)',
+        tipo: 'clave',
+        desc: 'Abre compuertas lógicas tipo AND.'
+    }
 };
 
 function preload() {
@@ -49,11 +104,12 @@ function preload() {
     this.load.tilemapTiledJSON('mapa1', 'assets/images/mapa1.json');
 
     // 2. Cargar las imágenes
-    // IMPORTANTE: Debes cargar la imagen que corresponde al tileset "Caminos"
-    // y cualquier otra que hayas usado (como rural-tileset-tilex)
+
     this.load.image('terreno', 'assets/images/terreno.png');
     this.load.image('arboles', 'assets/images/arboles.png');
-    this.load.image('casas', 'assets/images/casas.png');
+    this.load.image('edificios', 'assets/images/edificios.png');
+    this.load.image('decoraciones', 'assets/images/decoraciones.png');
+    this.load.image('techos', 'assets/images/techos.png');
 
     // 3. Cargar el sprite del jugador (Asegúrate de que el tamaño de cada frame sea correcto)
     this.load.spritesheet('player', 'assets/sprites/personaje1.png', {
@@ -64,6 +120,9 @@ function preload() {
     this.load.spritesheet('alien', 'assets/sprites/alien1.png', {
         frameWidth: 32, frameHeight: 32
     });
+
+    // 5. Cargar sprites de Items
+    this.load.image('recolectable', 'assets/sprites/recolectable.png');
 }
 
 function create() {
@@ -73,21 +132,26 @@ function create() {
     // IMPORTANTE: El primer nombre debe ser el que aparece en Tiled (ej: "Edificios_Set")
     // El segundo es el apodo que pusimos en preload ('tiles_edificios')
     const tileset = map.addTilesetImage('terreno', 'terreno');
-    const tilesetCasas = map.addTilesetImage('casas', 'casas');
+    const tilesetEdificios = map.addTilesetImage('edificios', 'edificios');
     const tilesetArboles = map.addTilesetImage('arboles', 'arboles');
+    const tilesetDecoraciones = map.addTilesetImage('decoraciones', 'decoraciones');
+    const tilesetTechos = map.addTilesetImage('techos', 'techos');
     //const tilesetArboles = map.addTilesetImage('Arboles', 'arboles');
 
     // Creamos las capas. Si en Tiled tu capa se llama "Suelo", aquí pones "Suelo"
     const capaFondo = map.createLayer('fondo', tileset);
     const capaCaminos = map.createLayer('caminos', tileset, 0, 0);
-    const capaCasas = map.createLayer('casas', tilesetCasas, 0, 0);
-    const capaDecoraciones = map.createLayer('Decoraciones', tilesetCasas);
+    const capaCasas = map.createLayer('casas', tilesetEdificios, 0, 0);
+    const capaDecoraciones = map.createLayer('Decoraciones', tilesetDecoraciones);
     const capaTerrenoAlto = map.createLayer('Terreno alto', tileset);
     //const capaArboles = map.createLayer('Arboles', tilesetArboles, 0, 0);
+
+
 
     // 2. FÍSICAS DE COLISIÓN
     // Esto hace que lo que marcaste con la propiedad "collides" en Tiled sea sólido
     capaCasas.setCollisionByProperty({ collides: true });
+
 
     // 3. JUGADOR (Mantenemos tu lógica)
     player = this.physics.add.sprite(100, 100, 'player'); // Cambié la posición inicial a 100,100
@@ -95,23 +159,57 @@ function create() {
 
     // Hacemos que el jugador choque con las paredes del mapa de Tiled
     //this.physics.add.collider(player, capaCasas);
-    this.physics.add.collider(player, capaCasas, (sprite, tile) => {
-        // 1. Verificamos que 'properties' exista para no romper el código
-        if (tile.properties) {
+    // Colisión entre el jugador y la capa de casas
+    this.physics.add.collider(player, capaCasas, (objeto1, objeto2) => {
+        // En Phaser, cuando chocas con un Tilemap, el segundo objeto es el 'Tile'
+        const tile = objeto2;
 
-            // Si usaste el campo "Class" de Tiled:
-            if (tile.properties.class === 'collides') {
-                console.log('Detectado por Clase');
-            }
+        // 1. Acceder a los datos de colisión del Tileset
+        // Buscamos si el tile tiene objetos definidos en el editor de colisiones
+        const datosTileset = tilesetEdificios.getTileData(tile.index);
 
-            // Si usaste un Atributo Personalizado (Booleano):
-            if (tile.properties.collides === true) {
-                console.log('Detectado por Atributo Personalizado');
-            }
+        if (datosTileset && datosTileset.objectgroup && datosTileset.objectgroup.objects) {
+            // Recorremos los objetos de colisión de ese tile específico
+            datosTileset.objectgroup.objects.forEach(obj => {
+                // 2. FILTRAR POR CLASE
+                if (obj.class === 'solido' || obj.type === 'solido') {
+                    console.log("Has chocado con una estructura de clase: SOLIDO");
+                    // Aquí podrías, por ejemplo, hacer que el personaje diga algo
+                }
+
+                if (obj.class === 'Arbol') {
+                    console.log("Esto es un árbol, su colisión es distinta.");
+                }
+            });
         }
     });
 
-    // 4. ANIMACIONES (Nuevo: para que el personaje se mueva con animaciones)
+    //ITEMS
+    // definición y posición en el mapa
+    let libroLogica = this.physics.add.image(300, 200, 'recolectable');
+    libroLogica.setData('itemId', 'libro_logica'); 
+    let espadaEuler = this.physics.add.image(150, 200, 'recolectable'); // Sprite temporal
+    espadaEuler.setData('itemId', 'espada_euler'); // Usamos el ID de la base de datos
+
+    this.physics.add.overlap(player, libroLogica, recolectarItem, null, this);
+    this.physics.add.overlap(player, espadaEuler, recolectarItem, null, this);
+
+    
+    //animación del ITEM
+
+
+    this.tweens.add({
+        targets: libroLogica,
+        y: libroLogica.y - 10,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+    });
+    this.physics.add.overlap(player, libroLogica, recolectarItem, null, this);
+    this.physics.add.overlap(player, espadaEuler, recolectarItem, null, this);
+
+    // 4. ANIMACIONES 
     this.anims.create({
         key: 'abajo',
         frames: this.anims.generateFrameNumbers('player', { start: 0, end: 2 }),
@@ -212,6 +310,8 @@ function create() {
     }, null, this);
 
 
+
+
     // Crear un contenedor gráfico para la barra de vida
     this.hpBar = this.add.graphics();
 
@@ -303,6 +403,166 @@ function update() {
 
 }
 
+// ---------------------
+// Funciones de los menu
+//----------------------
+// 1. Abrir y Cerrar el Menú
+function toggleMenu() {
+    const menu = document.getElementById('menu-rpg');
+
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        // Abrir menú
+        menu.style.display = 'flex';
+        actualizarMenuStats();
+        actualizarInventario();
+
+        // Pausar el juego en el fondo
+        game.scene.scenes[0].physics.world.pause();
+    } else {
+        // Cerrar menú
+        menu.style.display = 'none';
+        game.scene.scenes[0].physics.world.resume();
+    }
+}
+
+// 2. Mapear los datos del objeto a la pantalla
+function actualizarMenuStats() {
+    document.getElementById('hp-val').innerText = `${playerStats.hp} / ${playerStats.hpMax}`;
+    document.getElementById('ene-val').innerText = `${playerStats.energia} / ${playerStats.energiaMax}`;
+    document.getElementById('str-val').innerText = playerStats.fuerza;
+    document.getElementById('def-val').innerText = playerStats.defensa;
+    document.getElementById('luc-val').innerText = playerStats.luc;
+    document.getElementById('pts-val').innerText = playerStats.puntosDisponibles;
+}
+
+// 3. Lógica para distribuir puntos de estadística
+function subirStat(stat) {
+    if (playerStats.puntosDisponibles > 0) {
+        if (stat === 'fuerza') {
+            playerStats.fuerza += 1;
+        } else if (stat === 'defensa') {
+            playerStats.defensa += 1;
+        } else if (stat === 'hpMax') {
+            playerStats.hpMax += 10;
+        } else if (stat === 'energiaMax') {
+            playerStats.energiaMax += 5;
+        } else if (stat === 'suerte') {
+            playerStats.luc += 1;
+        }
+
+        // Aquí puedes agregar 'hpMax' o 'energiaMax' si creas sus botones en el HTML
+
+        playerStats.puntosDisponibles -= 1;
+        actualizarMenuStats(); // Refrescar la pantalla instantáneamente
+    } else {
+        mostrarMensaje("No tienes puntos de lógica para distribuir.");
+    }
+}
+
+// 4. Actualizar la interfaz de Estadísticas
+function actualizarMenuStats() {
+    document.getElementById('hp-val').innerText = `${playerStats.hp} / ${playerStats.hpMax}`;
+    document.getElementById('ene-val').innerText = `${playerStats.energia} / ${playerStats.energiaMax}`;
+    document.getElementById('pts-val').innerText = playerStats.puntosDisponibles;
+    
+    // Calculamos el total de modificadores
+    const bonos = calcularBonosEquipo();
+    
+    // Imprimimos BASE + BONO
+    document.getElementById('str-val').innerText = playerStats.fuerza;
+    document.getElementById('str-bono').innerText = bonos.str > 0 ? `+ ${bonos.str}` : '';
+    
+    document.getElementById('def-val').innerText = playerStats.defensa;
+    document.getElementById('def-bono').innerText = bonos.defensa > 0 ? `+ ${bonos.defensa}` : '';
+    
+    // Si 'luc' (suerte) no existe en playerStats, puedes añadirlo: playerStats.luc = 5;
+    document.getElementById('luc-val').innerText = playerStats.luc || 0;
+    document.getElementById('luc-bono').innerText = bonos.luc > 0 ? `+ ${bonos.luc}` : '';
+}
+
+// ------------------------------
+// Sección de Inventario y Equipamiento
+// ------------------------------
+
+// 1. Mostrar los ítems del inventario con botones dinámicos
+
+function actualizarInventario() {
+    const lista = document.getElementById('lista-items');
+    lista.innerHTML = ''; 
+    
+    if (playerStats.inventario.length === 0) {
+        lista.innerHTML = '<li class="inventarioVacio">Inventario vacío</li>';
+        return;
+    }
+
+    playerStats.inventario.forEach((item, index) => {
+        let li = document.createElement('li');
+        li.style.marginBottom = '10px';
+        
+        let textoSpan = document.createElement('span');
+        textoSpan.innerText = `${item.nombre} (${item.tipo.toUpperCase()})`;
+        li.appendChild(textoSpan);
+        
+        // Crear botón según el tipo de ítem
+        let btn = document.createElement('button');
+        btn.className = 'btn-accion-item';
+        
+        if (item.tipo === 'consumible') {
+            btn.innerText = 'Usar';
+            btn.onclick = () => usarItem(index);
+            li.appendChild(btn);
+        } else if (['arma', 'botas', 'cabeza', 'cuerpo', 'guantes', 'accesorio', 'clave'].includes(item.tipo)) {
+            // Asumimos que si no es consumible ni clave, es equipable
+            if (item.tipo !== 'clave') {
+                btn.innerText = 'Equipar';
+                btn.onclick = () => equiparItem(index);
+                li.appendChild(btn);
+            }
+        }
+        
+        lista.appendChild(li);
+    });
+}
+
+// 2. Función para equipar (Intercambio de matrices)
+function equiparItem(index) {
+    const itemAEquipar = playerStats.inventario[index];
+    const ranura = itemAEquipar.tipo; // ej: 'arma'
+    
+    // Si ya teníamos algo en esa ranura, lo devolvemos al inventario
+    if (playerStats.equipo[ranura]) {
+        playerStats.inventario.push(playerStats.equipo[ranura]);
+    }
+    
+    // Asignamos el nuevo ítem a la ranura
+    playerStats.equipo[ranura] = itemAEquipar;
+    
+    // Lo eliminamos del inventario
+    playerStats.inventario.splice(index, 1);
+    
+    // Actualizamos la UI y reproducimos sonido opcional
+    actualizarInventario();
+    actualizarMenuStats();
+    mostrarMensaje(`Has equipado: ${itemAEquipar.nombre}`);
+}
+
+// 3. Función matemática para sumar bonos
+function calcularBonosEquipo() {
+    let bonos = { str: 0, defensa: 0, luc: 0 };
+    
+    // Iteramos por todas las ranuras de equipo
+    for (const ranura in playerStats.equipo) {
+        const item = playerStats.equipo[ranura];
+        // Si hay un ítem y tiene la propiedad 'bonos'
+        if (item && item.bonos) {
+            if (item.bonos.str) bonos.str += item.bonos.str;
+            if (item.bonos.defensa) bonos.defensa += item.bonos.defensa;
+            if (item.bonos.luc) bonos.luc += item.bonos.luc;
+        }
+    }
+    return bonos;
+}
+
 // Función para dibujar la barra (puedes llamarla en el update)
 function dibujarBarraVida(escena, x, y, stats) {
     escena.hpBar.clear();
@@ -316,6 +576,59 @@ function dibujarBarraVida(escena, x, y, stats) {
     escena.hpBar.fillStyle(0x00ff00);
     escena.hpBar.fillRect(x - 20, y - 40, anchoVerde, 6);
 }
+
+function toggleSection(idSeccion) {
+    const seccion = document.getElementById(idSeccion);
+
+    // Si ya está abierta, la cerramos
+    if (seccion.classList.contains('open')) {
+        seccion.classList.remove('open');
+    } else {
+        // Opcional: Cerrar las otras secciones primero (Efecto Acordeón Estricto)
+        document.querySelectorAll('.menu-body').forEach(el => el.classList.remove('open'));
+
+        // Abrir la seleccionada
+        seccion.classList.add('open');
+    }
+}
+
+function reproducirHover() {
+    sonidoMenuHover.currentTime = 0; // Reinicia el audio al milisegundo 0
+    sonidoMenuHover.play().catch(error => {
+        // Los navegadores a veces bloquean el audio si el usuario no ha interactuado antes
+        console.log("Esperando interacción para reproducir sonido");
+    });
+}
+
+
+// Interacción con los objetos
+
+function recolectarItem(jugador, itemSprite) {
+    // 1. Obtenemos el ID del sprite
+    const idItem = itemSprite.getData('itemId'); 
+    
+    // 2. Buscamos todas sus propiedades matemáticas en la base de datos
+    const datosItem = itemsDB[idItem];
+
+    // 3. Destruimos el sprite del mapa
+    itemSprite.destroy();
+
+    // 4. Guardamos el objeto en el inventario (haciendo una copia para no alterar la BD original)
+    playerStats.inventario.push({ ...datosItem });
+
+    // 5. Actualizamos la interfaz
+    actualizarInventario();
+
+    // 6. Mostramos el mensaje (ahora podemos leer si es un arma o un consumible)
+    let textoMensaje = `¡Has encontrado: ${datosItem.nombre}!\n`;
+    if (datosItem.tipo === 'arma') textoMensaje += `Daño: ${datosItem.atkMin}-${datosItem.atkMax}`;
+    
+    mostrarMensaje(textoMensaje);
+}
+
+// ------------------
+// Sección de funciones de Batalla
+//---------------
 
 function actualizarInterfazBatalla() {
     // Cálculo de porcentajes para las barras CSS
@@ -386,25 +699,27 @@ function intentarEscapar() {
 function finalizarCombate() {
     // 1. Ocultar pantalla de batalla
     document.getElementById('battle-screen').style.display = 'none';
-    
+
     // 2. Quitar desenfoque del juego
     document.getElementById('game-container').style.filter = 'none';
-    
+
     // 3. Mostrar controles táctiles (solo si no es PC)
     if (window.innerWidth < 1024) {
         document.getElementById('mobile-controls').style.display = 'grid';
     }
-    
+
     // 4. Reanudar físicas y juego
     game.scene.scenes[0].physics.world.resume();
-    
+
     // 5. Mover al jugador un poco para que no colisione de inmediato otra vez
     // Esto evita un bucle infinito de batalla
-    player.x += 100; 
+    player.x += 100;
 }
 
 
+// -----------------------------
 // Funciones para los mensajes personalizados (en lugar de alert())
+// ------------------------------
 function mostrarMensaje(texto) {
     document.getElementById('alert-message').innerText = texto;
     document.getElementById('custom-alert').style.display = 'flex';
@@ -412,7 +727,7 @@ function mostrarMensaje(texto) {
 
 function cerrarNotificacion() {
     document.getElementById('custom-alert').style.display = 'none';
-    
+
     // Si el escape fue exitoso, cerramos la batalla
     if (pendienteCerrarCombate) {
         finalizarCombate();

@@ -3,12 +3,112 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "mapa1.tmx",
     "expandedProjectPaths": [
     ],
     "fileStates": {
-        "mapa1.tmx#arboles": {
+        "": {
+            "scaleInDock": 1.5,
             "scaleInEditor": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx": {
+            "scale": 0.586328125,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": -128.76748834110595,
+                "y": -0.8527648234510821
+            }
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#Doors_windows_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#Smoke_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#Trees_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#bird_fly_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#bird_jump_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#cat_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#exterior": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#ground_grass_details": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx#house_details": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": -73.75,
+                "y": 74.75
+            }
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#Doors_windows_animation": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#Smoke_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#Trees_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#bird_fly_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#bird_jump_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#cat_animation": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#exterior": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#ground_grass_details": {
+            "scaleInDock": 1
+        },
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx#house_details": {
+            "scaleInDock": 1
+        },
+        "mapa1.tmx": {
+            "scale": 1,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 172.5,
+                "y": 331.5
+            }
+        },
+        "mapa1.tmx#arboles": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "mapa1.tmx#casas": {
+            "scaleInDock": 1
+        },
+        "mapa1.tmx#decoraciones": {
+            "scaleInDock": 0.5
+        },
+        "mapa1.tmx#edificios": {
+            "scaleInDock": 0.75,
+            "scaleInEditor": 1
+        },
+        "mapa1.tmx#techos": {
+            "scaleInDock": 0.5
+        },
+        "mapa1.tmx#terreno": {
+            "scaleInDock": 1
         }
     },
     "last.exportedFilePath": "C:/Users/ASUS/OneDrive - cepinm.org/Documentos/Proyectos/Invasores Logicos/assets/images",
@@ -19,10 +119,14 @@
     "map.layerDataFormat": "3",
     "map.width": 20,
     "openFiles": [
+        "mapa1.tmx"
     ],
     "project": "creacion_mapa.tiled-project",
     "property.type": "object",
     "recentFiles": [
+        "C:/Users/ASUS/Downloads/Tile/Descomprimidos/Tiled_files/Exterior.tmx",
+        "C:/Users/ASUS/AppData/Local/Temp/ea2e5d0d-d19b-4ea5-8f92-f7278fccb673_main-characters-home-free-top-down-pixel-art-asset.zip.673/Tiled_files/Exterior.tmx",
+        "mapa1.tmx"
     ],
     "tileset.embedInMap": true
 }

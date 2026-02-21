@@ -9,17 +9,76 @@
     <!-- Contenedor para el juego Phaser -->
     <div id="game-container"></div>
 
+    <!-- Menú -->
+    <button id="btn-abrir-menu" onclick="toggleMenu()">☰ MENÚ</button>
+
+    <div id="menu-rpg" class="menu-oculto">
+        <button class="btn-cerrar" onclick="toggleMenu()">X Cerrar</button>
+
+        
+
+        <div class="menu-contenido">
+
+            <div class="menu-section">
+                <button class="menu-header" onclick="toggleSection('sec-atributos')" onmouseenter="reproducirHover()">
+                    ESTADÍSTICAS ▼
+                </button>
+                <div id="sec-atributos" class="menu-body">
+                    <div class="inner-padding">
+                        <p>HP: <span id="hp-val"></span> <button onclick="subirStat('hpMax')">+</button></p>
+                        <p>Energía: <span id="ene-val"></span> <button onclick="subirStat('energiaMax')">+</button></p>
+                        <br>
+                        <p>Fuerza: <span id="str-val"></span> <span id="str-bono" class="txt-bono"></span> <button onclick="subirStat('fuerza')">+</button></p>
+                        <p>Defensa: <span id="def-val"></span> <span id="def-bono" class="txt-bono"></span> <button onclick="subirStat('defensa')">+</button></p>
+                        <p>Suerte: <span id="luc-val"></span> <span id="luc-bono" class="txt-bono"></span> <button onclick="subirStat('suerte')">+</button></p>
+                        <br>
+                        <p>____________________________</p>
+                        <p>Puntos de Lógica: <span id="pts-val"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <button class="menu-header" onclick="toggleSection('sec-inventario')" onmouseenter="reproducirHover()">
+                    INVENTARIO ▼
+                </button>
+                <div id="sec-inventario" class="menu-body">
+                    <div class="inner-padding">
+                        <p>Oro: <span id="oro-val"></span></p>
+                        <ul id="lista-items"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <button class="menu-header" onclick="toggleSection('sec-opciones')" onmouseenter="reproducirHover()">
+                    OPCIONES ▼
+                </button>
+                <div id="sec-opciones" class="menu-body">
+                    <div class="inner-padding">
+                        <button onclick="guardarProgreso()">Guardar Partida</button>
+                        <br><br>
+                        <button onclick="location.reload()">Reiniciar Juego</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>
+
     <div id="ui-interfaz" style="position: absolute; bottom: 10px;">
         <p>HP: <span id="hp-display">100</span></p>
     </div>
 
     <!-- Botones de control para móvil (solo visibles en pantallas pequeñas) -->
     <div id="mobile-controls">
-    <div class="control-btn up" id="btn-up">▲</div>
-    <div class="control-btn left" id="btn-left">◀</div>
-    <div class="control-btn right" id="btn-right">▶</div>
-    <div class="control-btn down" id="btn-down">▼</div>
-</div>
+        <div class="control-btn up" id="btn-up">▲</div>
+        <div class="control-btn left" id="btn-left">◀</div>
+        <div class="control-btn right" id="btn-right">▶</div>
+        <div class="control-btn down" id="btn-down">▼</div>
+    </div>
 
 
     <!-- <div id="game-container"></div>
@@ -28,20 +87,7 @@
         <p>Usa la lógica para deshabilitar los escudos alienígenas.</p>
     </div> -->
 
-     <!-- Menú RPG oculto inicialmente -->
-    <div id="menu-rpg" class="menu-oculto">
-        <div class="stats-panel">
-            <h2>Atributos</h2>
-            <p>HP: <span id="hp-val"></span></p>
-            <p>Fuerza: <span id="str-val"></span> <button onclick="subirStat('fuerza')">+</button></p>
-            <p>Energía: <span id="ene-val"></span></p>
-            <p>Puntos: <span id="pts-val"></span></p>
-        </div>
-        <div class="inventory-panel">
-            <h2>Inventario</h2>
-            <ul id="lista-items"></ul>
-        </div>
-    </div>
+    
 
     <!-- Pantalla de batalla RPG (oculta inicialmente) -->
     <div id="battle-screen" class="battle-overlay">
@@ -61,21 +107,21 @@
                 </div>
             </div>
             <div class="actions-box">
-                <button onclick="ejecutarAccion('ataque')">LÓGICA</button>
-                <button onclick="ejecutarAccion('energia')">MEDITAR</button>
-                <button onclick="abrirInventario()">ÍTEMS</button>
-                <button onclick="intentarEscapar()">HUIR</button>
+                <button class="btn-accion" onclick="ejecutarAccion('ataque')">LÓGICA</button>
+                <button class="btn-accion" onclick="ejecutarAccion('energia')">MEDITAR</button>
+                <button class="btn-accion" onclick="abrirInventario()">ÍTEMS</button>
+                <button class="btn-accion" onclick="intentarEscapar()">HUIR</button>
             </div>
         </div>
     </div>
 
-    <!-- Div para mostrar notificaciones personalizadas (oculta inicialmente) --> 
+    <!-- Div para mostrar notificaciones personalizadas (oculta inicialmente) -->
     <div id="custom-alert" class="alert-hidden">
-    <div class="alert-content">
-        <p id="alert-message"></p>
-        <button onclick="cerrarNotificacion()">CONTINUAR</button>
+        <div class="alert-content">
+            <p id="alert-message"></p>
+            <button onclick="cerrarNotificacion()">CONTINUAR</button>
+        </div>
     </div>
-</div>
 
     <script src="src/main.js"></script>
 </body>
