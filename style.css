@@ -217,6 +217,94 @@ canvas {
     text-align: center;
 }
 
+/* Layout General del Inventario */
+.visual-inventory-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+/* --- PANEL DE EQUIPO (Silueta) --- */
+.equipment-panel {
+    display: grid;
+    grid-template-areas:
+        ". head ."
+        "weapon body gloves"
+        ". boots acc";
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #004080;
+}
+
+.equip-slot {
+    width: 60px;
+    height: 60px;
+    background: #111;
+    border: 2px dashed #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px; /* Tamaño del emoji/icono */
+    cursor: pointer;
+    color: #666;
+    font-size: 10px; /* Texto por defecto si está vacío */
+    text-transform: uppercase;
+}
+
+.equip-slot.filled {
+    border: 2px solid #00ff41;
+    background: #001a33;
+    font-size: 35px; /* Para que el emoji se vea grande */
+}
+
+/* Asignación a la cuadrícula */
+.head-slot { grid-area: head; }
+.weapon-slot { grid-area: weapon; }
+.body-slot { grid-area: body; }
+.gloves-slot { grid-area: gloves; }
+.boots-slot { grid-area: boots; }
+.acc-slot { grid-area: acc; }
+
+/* --- PANEL DE LA MOCHILA --- */
+.backpack-panel {
+    flex-grow: 1;
+}
+
+.backpack-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columnas de ítems */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.inv-slot {
+    width: 50px;
+    height: 50px;
+    background: #222;
+    border: 1px solid #00aaff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+}
+.inv-slot:hover {
+    background: #004080;
+    border-color: #00ff41;
+}
+
+/* Tooltip inferior */
+.item-tooltip {
+    background: #000;
+    border-top: 2px solid #00ff41;
+    padding: 10px;
+    font-size: 12px;
+    min-height: 50px;
+    color: #ccc;
+}
+
 /* Clase activa para abrir */
 .menu-body.open {
     max-height: 500px; /* Un valor suficiente para que quepa el contenido */

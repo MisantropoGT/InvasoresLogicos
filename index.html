@@ -15,7 +15,7 @@
     <div id="menu-rpg" class="menu-oculto">
         <button class="btn-cerrar" onclick="toggleMenu()">X Cerrar</button>
 
-        
+
 
         <div class="menu-contenido">
 
@@ -28,9 +28,12 @@
                         <p>HP: <span id="hp-val"></span> <button onclick="subirStat('hpMax')">+</button></p>
                         <p>Energía: <span id="ene-val"></span> <button onclick="subirStat('energiaMax')">+</button></p>
                         <br>
-                        <p>Fuerza: <span id="str-val"></span> <span id="str-bono" class="txt-bono"></span> <button onclick="subirStat('fuerza')">+</button></p>
-                        <p>Defensa: <span id="def-val"></span> <span id="def-bono" class="txt-bono"></span> <button onclick="subirStat('defensa')">+</button></p>
-                        <p>Suerte: <span id="luc-val"></span> <span id="luc-bono" class="txt-bono"></span> <button onclick="subirStat('suerte')">+</button></p>
+                        <p>Fuerza: <span id="str-val"></span> <span id="str-bono" class="txt-bono"></span> <button
+                                onclick="subirStat('fuerza')">+</button></p>
+                        <p>Defensa: <span id="def-val"></span> <span id="def-bono" class="txt-bono"></span> <button
+                                onclick="subirStat('defensa')">+</button></p>
+                        <p>Suerte: <span id="luc-val"></span> <span id="luc-bono" class="txt-bono"></span> <button
+                                onclick="subirStat('suerte')">+</button></p>
                         <br>
                         <p>____________________________</p>
                         <p>Puntos de Lógica: <span id="pts-val"></span></p>
@@ -43,11 +46,34 @@
                     INVENTARIO ▼
                 </button>
                 <div id="sec-inventario" class="menu-body">
-                    <div class="inner-padding">
-                        <p>Oro: <span id="oro-val"></span></p>
-                        <ul id="lista-items"></ul>
+                    <div class="inner-padding visual-inventory-layout">
+
+                        <div class="equipment-panel">
+                            <div class="equip-slot head-slot" id="slot-cabeza" onclick="desequiparItem('cabeza')">Cabeza
+                            </div>
+                            <div class="equip-slot weapon-slot" id="slot-arma" onclick="desequiparItem('arma')">Arma
+                            </div>
+                            <div class="equip-slot body-slot" id="slot-cuerpo" onclick="desequiparItem('cuerpo')">Cuerpo
+                            </div>
+                            <div class="equip-slot gloves-slot" id="slot-guantes" onclick="desequiparItem('guantes')">
+                                Guantes</div>
+                            <div class="equip-slot boots-slot" id="slot-botas" onclick="desequiparItem('botas')">Botas
+                            </div>
+                            <div class="equip-slot acc-slot" id="slot-accesorio" onclick="desequiparItem('accesorio')">
+                                Acces.</div>
+                        </div>
+
+                        <div class="backpack-panel">
+                            <h3>Mochila</h3>
+                            <p>Oro: <span id="oro-val"></span></p>
+                            <div class="backpack-grid" id="lista-items">
+                            </div>
+                        </div>
+
                     </div>
+                    <div id="item-info-panel" class="item-tooltip">Selecciona un ítem para ver sus detalles.</div>
                 </div>
+                
             </div>
 
             <div class="menu-section">
@@ -87,7 +113,7 @@
         <p>Usa la lógica para deshabilitar los escudos alienígenas.</p>
     </div> -->
 
-    
+
 
     <!-- Pantalla de batalla RPG (oculta inicialmente) -->
     <div id="battle-screen" class="battle-overlay">

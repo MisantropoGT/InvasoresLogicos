@@ -26,7 +26,10 @@ let cursors;
 let touchControls = { up: false, down: false, left: false, right: false };
 let pendienteCerrarCombate = false;
 
-// Carga de sonidos
+// Variables globales para el audio
+let bgmMundo;
+let bgmBatalla;
+let sfxItem;
 const sonidoMenuHover = new Audio('assets/sounds/hover.mp3');
 sonidoMenuHover.volume = 0.5;
 
@@ -42,7 +45,7 @@ let playerStats = {
     luc: 5,
     puntosDisponibles: 5,
     experiencia: 0,
-    oro: 0,
+    oro: 500,
     equipo: {
         arma: null,
         cabeza: null,
@@ -51,7 +54,7 @@ let playerStats = {
         botas: null,
         accesorio: null
     },
-    inventario: [] // Objetos con sus carteriticas (estilo diccionarios)
+    inventario: [] // Objetos con sus características (estilo diccionarios)
 };
 
 // Base de datos de todos los ítems del juego
@@ -65,6 +68,7 @@ const itemsDB = {
         atkMax: 14,
         costoEnergia: 5,
         bonos: { str: 2, luc: 3 }, // Substats
+        icono: '🗡️', //sprite
         desc: 'Un arma perfectamente balanceada usando la constante e.'
     },
     // --- EQUIPAMIENTO ---
@@ -73,6 +77,7 @@ const itemsDB = {
         nombre: 'Botas de Newton',
         tipo: 'botas',
         bonos: { defensa: 2, velocidad: 10 },
+        icono: '👢', //sprite
         desc: 'Ignoran parcialmente la fricción.'
     },
     // --- CONSUMIBLES ---
@@ -81,6 +86,7 @@ const itemsDB = {
         nombre: 'Café Matemático',
         tipo: 'consumible',
         efecto: { recuperaHP: 20, recuperaEN: 15 },
+        icono: '☕',
         desc: 'Restaura HP y Energía para seguir resolviendo problemas.'
     },
     // --- Varios ----
@@ -88,6 +94,7 @@ const itemsDB = {
         id: 'libro_logica',
         nombre: 'Libro de Logica Boolena',
         tipo: 'varios',
+        icono: '📘',
         precio: 100
     },
     // --- OBJETOS CLAVE ---
@@ -95,6 +102,7 @@ const itemsDB = {
         id: 'llave_booleana',
         nombre: 'Llave Booleana (True)',
         tipo: 'clave',
+        icono: '🔑',
         desc: 'Abre compuertas lógicas tipo AND.'
     }
 };
@@ -123,6 +131,11 @@ function preload() {
 
     // 5. Cargar sprites de Items
     this.load.image('recolectable', 'assets/sprites/recolectable.png');
+
+    // 6. Cargar Audio
+    this.load.audio('musica_mundo', 'assets/sounds/world_bgm_m1.mp3');
+    this.load.audio('musica_batalla', 'assets/sounds/battle_bgm.mp3');
+    this.load.audio('sonido_item', 'assets/sounds/pickup.mp3');
 }
 
 function create() {
@@ -315,10 +328,13 @@ function create() {
     // Crear un contenedor gráfico para la barra de vida
     this.hpBar = this.add.graphics();
 
+    // Configurar los sonidos
+    bgmMundo = this.sound.add('musica_mundo', { loop: true, volume: 0.4 });
+    bgmBatalla = this.sound.add('musica_batalla', { loop: true, volume: 0.5 });
+    sfxItem = this.sound.add('sonido_item', { volume: 0.7 });
 
-
-
-
+    // Iniciar la música del mapa
+    bgmMundo.play();
 
 }
 
@@ -425,16 +441,6 @@ function toggleMenu() {
     }
 }
 
-// 2. Mapear los datos del objeto a la pantalla
-function actualizarMenuStats() {
-    document.getElementById('hp-val').innerText = `${playerStats.hp} / ${playerStats.hpMax}`;
-    document.getElementById('ene-val').innerText = `${playerStats.energia} / ${playerStats.energiaMax}`;
-    document.getElementById('str-val').innerText = playerStats.fuerza;
-    document.getElementById('def-val').innerText = playerStats.defensa;
-    document.getElementById('luc-val').innerText = playerStats.luc;
-    document.getElementById('pts-val').innerText = playerStats.puntosDisponibles;
-}
-
 // 3. Lógica para distribuir puntos de estadística
 function subirStat(stat) {
     if (playerStats.puntosDisponibles > 0) {
@@ -478,6 +484,9 @@ function actualizarMenuStats() {
     // Si 'luc' (suerte) no existe en playerStats, puedes añadirlo: playerStats.luc = 5;
     document.getElementById('luc-val').innerText = playerStats.luc || 0;
     document.getElementById('luc-bono').innerText = bonos.luc > 0 ? `+ ${bonos.luc}` : '';
+
+    // Actualizamos el oro
+        document.getElementById('oro-val').innerText = playerStats.oro;
 }
 
 // ------------------------------
@@ -487,41 +496,71 @@ function actualizarMenuStats() {
 // 1. Mostrar los ítems del inventario con botones dinámicos
 
 function actualizarInventario() {
-    const lista = document.getElementById('lista-items');
-    lista.innerHTML = ''; 
-    
-    if (playerStats.inventario.length === 0) {
-        lista.innerHTML = '<li class="inventarioVacio">Inventario vacío</li>';
-        return;
-    }
+    // 1. DIBUJAR LA MOCHILA
+    const grid = document.getElementById('lista-items');
+    grid.innerHTML = ''; 
 
     playerStats.inventario.forEach((item, index) => {
-        let li = document.createElement('li');
-        li.style.marginBottom = '10px';
+        let div = document.createElement('div');
+        div.className = 'inv-slot';
         
-        let textoSpan = document.createElement('span');
-        textoSpan.innerText = `${item.nombre} (${item.tipo.toUpperCase()})`;
-        li.appendChild(textoSpan);
+        // Si el icono es un string corto (emoji), lo ponemos como texto. Si es ruta, usaríamos <img> o background-image
+        div.innerHTML = item.icono; 
         
-        // Crear botón según el tipo de ítem
-        let btn = document.createElement('button');
-        btn.className = 'btn-accion-item';
+        // Al pasar el ratón, mostramos la descripción
+        div.onmouseenter = () => mostrarInfoItem(item);
         
-        if (item.tipo === 'consumible') {
-            btn.innerText = 'Usar';
-            btn.onclick = () => usarItem(index);
-            li.appendChild(btn);
-        } else if (['arma', 'botas', 'cabeza', 'cuerpo', 'guantes', 'accesorio', 'clave'].includes(item.tipo)) {
-            // Asumimos que si no es consumible ni clave, es equipable
-            if (item.tipo !== 'clave') {
-                btn.innerText = 'Equipar';
-                btn.onclick = () => equiparItem(index);
-                li.appendChild(btn);
+        // Al hacer clic, equipamos o usamos
+        div.onclick = () => {
+            if (item.tipo === 'consumible') {
+                usarItem(index);
+            } else {
+                equiparItem(index);
             }
-        }
+        };
         
-        lista.appendChild(li);
+        grid.appendChild(div);
     });
+
+    // Rellenar con espacios vacíos para que la cuadrícula se vea completa (opcional, ej. 12 espacios)
+    while (grid.children.length < 12) {
+        let emptyDiv = document.createElement('div');
+        emptyDiv.className = 'inv-slot';
+        emptyDiv.style.borderColor = '#333';
+        grid.appendChild(emptyDiv);
+    }
+
+    // 2. DIBUJAR EL EQUIPO ACTUAL
+    const ranuras = ['cabeza', 'arma', 'cuerpo', 'guantes', 'botas', 'accesorio'];
+    
+    ranuras.forEach(ranura => {
+        const divRanura = document.getElementById(`slot-${ranura}`);
+        const itemEquipado = playerStats.equipo[ranura];
+        
+        if (itemEquipado) {
+            divRanura.innerHTML = itemEquipado.icono;
+            divRanura.classList.add('filled');
+            divRanura.onmouseenter = () => mostrarInfoItem(itemEquipado);
+        } else {
+            // Restaurar texto por defecto si está vacío
+            divRanura.innerHTML = ranura;
+            divRanura.classList.remove('filled');
+            divRanura.onmouseenter = () => {}; // Quitar tooltip
+        }
+    });
+}
+
+// Mostrar detalles en el panel inferior
+function mostrarInfoItem(item) {
+    let texto = `<strong style="color:#00ff41;">${item.nombre}</strong><br>${item.desc}`;
+    if (item.bonos) {
+        texto += ` <span style="color:#ffcc00;">[Bonos: `;
+        if (item.bonos.str) texto += `Fuerza +${item.bonos.str} `;
+        if (item.bonos.defensa) texto += `Def +${item.bonos.defensa} `;
+        if (item.bonos.luc) texto += `Suerte +${item.bonos.luc}`;
+        texto += `]</span>`;
+    }
+    document.getElementById('item-info-panel').innerHTML = texto;
 }
 
 // 2. Función para equipar (Intercambio de matrices)
@@ -544,6 +583,20 @@ function equiparItem(index) {
     actualizarInventario();
     actualizarMenuStats();
     mostrarMensaje(`Has equipado: ${itemAEquipar.nombre}`);
+}
+
+// Función para DESEQUIPAR haciendo clic en la silueta
+function desequiparItem(ranura) {
+    const item = playerStats.equipo[ranura];
+    if (item) {
+        // Pasa del equipo a la mochila
+        playerStats.inventario.push(item);
+        playerStats.equipo[ranura] = null;
+        
+        actualizarInventario();
+        actualizarMenuStats();
+        mostrarMensaje(`Te has quitado: ${item.nombre}`);
+    }
 }
 
 // 3. Función matemática para sumar bonos
@@ -613,13 +666,16 @@ function recolectarItem(jugador, itemSprite) {
     // 3. Destruimos el sprite del mapa
     itemSprite.destroy();
 
-    // 4. Guardamos el objeto en el inventario (haciendo una copia para no alterar la BD original)
+    // 4. Reproducimos el sonido
+    sfxItem.play();
+
+    // 5. Guardamos el objeto en el inventario (haciendo una copia para no alterar la BD original)
     playerStats.inventario.push({ ...datosItem });
 
-    // 5. Actualizamos la interfaz
+    // 6. Actualizamos la interfaz
     actualizarInventario();
 
-    // 6. Mostramos el mensaje (ahora podemos leer si es un arma o un consumible)
+    // 7. Mostramos el mensaje (ahora podemos leer si es un arma o un consumible)
     let textoMensaje = `¡Has encontrado: ${datosItem.nombre}!\n`;
     if (datosItem.tipo === 'arma') textoMensaje += `Daño: ${datosItem.atkMin}-${datosItem.atkMax}`;
     
@@ -647,45 +703,31 @@ function actualizarInterfazBatalla() {
 
 // Función para iniciar el combate
 function iniciarCombate(enemigo) {
-    // 0. Efecto visual de transición
+    // 1. Efecto visual de transición
     document.getElementById('game-container').style.filter = 'blur(5px) grayscale(50%)';
 
-    // 1. Mostramos el div que estaba en 'display: none'
+    // 2. Mostramos el div que estaba en 'display: none'
     const pantallaBatalla = document.getElementById('battle-screen');
     pantallaBatalla.style.display = 'flex'; // Usamos flex porque así lo definimos en el CSS
 
-    // Ocultamos los botones táctiles
+    // 3. Ocultamos los botones táctiles
     const controles = document.getElementById('mobile-controls');
     if (controles) controles.style.display = 'none';
 
-    // 2. Actualizamos los datos iniciales en la interfaz
+    // 4. Transición musical
+    bgmMundo.pause(); // Pausamos para que al volver siga donde se quedó
+    bgmBatalla.play();
+
+    // 5. Actualizamos los datos iniciales en la interfaz
     actualizarInterfazBatalla();
 
-    // 3. (Opcional) Podemos pasar datos del alien a la batalla
+    // 6. (Opcional) Podemos pasar datos del alien a la batalla
     console.log("Iniciando batalla contra el alien tipo: " + enemigo.texture.key);
 
     // Aquí podrías incluso cambiar la música o añadir un efecto visual
 }
 
-// Función para finalizar el combate y volver al juego
-/*
-function finalizarCombate() {
-    // 1. Ocultamos la pantalla de batalla
-    document.getElementById('battle-screen').style.display = 'none';
-    
-    // 2. Quitamos el desenfoque del juego
-    document.getElementById('game-container').style.filter = 'none';
-    
-    // 3. Volvemos a mostrar los controles táctiles (solo si no es PC)
-    if (window.innerWidth < 1024) {
-        document.getElementById('mobile-controls').style.display = 'grid';
-    }
-    
-    // 4. Reanudamos el mundo físico de Phaser
-    // Necesitarás acceder a la escena actual de Phaser
-    game.scene.scenes[0].physics.world.resume();
-}
-*/
+
 function intentarEscapar() {
     if (Math.random() < 0.5) {
         mostrarMensaje("¡Escape exitoso! Has logrado burlar al alien.");
@@ -708,10 +750,14 @@ function finalizarCombate() {
         document.getElementById('mobile-controls').style.display = 'grid';
     }
 
-    // 4. Reanudar físicas y juego
+    // 4. Transición musical de regreso
+    bgmBatalla.stop(); // La de batalla se detiene por completo
+    bgmMundo.resume(); // La del mundo continúa
+
+    // 5. Reanudar físicas y juego
     game.scene.scenes[0].physics.world.resume();
 
-    // 5. Mover al jugador un poco para que no colisione de inmediato otra vez
+    // 6. Mover al jugador un poco para que no colisione de inmediato otra vez
     // Esto evita un bucle infinito de batalla
     player.x += 100;
 }
